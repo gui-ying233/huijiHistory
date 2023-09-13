@@ -6,6 +6,7 @@
 // @author       鬼影233
 // @match        *.huijiwiki.com/*
 // @icon         https://av.huijiwiki.com/site_avatar_www_l.png
+// @license      MIT
 // ==/UserScript==
 
 (function () {
