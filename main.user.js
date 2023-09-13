@@ -45,9 +45,19 @@
 		const creatRevLi = (revId, user, comment, timestamp, size) => {
 			const li = document.createElement("li");
 			li.dataset.mwRevid = revId;
+			const date = new Date(timestamp);
 			li.innerHTML = `<a href="${mw.util.getUrl("", {
 				oldid: revId,
-			})}" class="mw-changeslist-date" title="${pageName}">${timestamp}</a>‎ <span class="history-user"><a href="${mw.util.getUrl(
+			})}" class="mw-changeslist-date" title="${pageName}">
+			${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 (${
+				["日", "一", "二", "三", "四", "五", "六"][date.getDay()]
+			}) ${date.getHours().toString().padStart(2, 0)}:${date
+				.getMinutes()
+				.toString()
+				.padStart(
+					2,
+					0
+				)}</a>‎ <span class="history-user"><a href="${mw.util.getUrl(
 				`User:${user}`
 			)}" class="mw-userlink markrights markBlockInfo user-link user-avatar-added" title="User:${user}" data-username="${user}"><bdi>${user}</bdi></a><span class="mw-usertoollinks">（<a href="${mw.util.getUrl(
 				`User talk:${user}`
