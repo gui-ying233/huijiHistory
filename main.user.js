@@ -21,7 +21,7 @@
 					return;
 				}
 			}, 50);
-		});	
+		});
 		if (
 			mw.config.get("wgAction") !== "history" ||
 			!document.body.getElementsByClassName("permissions-errors")[0]
@@ -47,11 +47,11 @@
 			li.dataset.mwRevid = revId;
 			li.innerHTML = `<a href="${mw.util.getUrl("", {
 				oldid: revId,
-			})}" class="mw-changeslist-date" title="${pageName}">${timestamp}</a>‎ <span class="history-user"><a href="${mw.util。getUrl(
+			})}" class="mw-changeslist-date" title="${pageName}">${timestamp}</a>‎ <span class="history-user"><a href="${mw.util.getUrl(
 				`User:${user}`
-			)}" class="mw-userlink markrights markBlockInfo user-link user-avatar-added" title="User:${user}" data-username="${user}"><bdi>${user}</bdi></a><span class="mw-usertoollinks">（<a href="${mw.util。getUrl(
+			)}" class="mw-userlink markrights markBlockInfo user-link user-avatar-added" title="User:${user}" data-username="${user}"><bdi>${user}</bdi></a><span class="mw-usertoollinks">（<a href="${mw.util.getUrl(
 				`User talk:${user}`
-			)}" class="mw-usertoollinks-talk user-link" title="User talk:${user}">讨论</a> | <a href="${mw.util。getUrl(
+			)}" class="mw-usertoollinks-talk user-link" title="User talk:${user}">讨论</a> | <a href="${mw.util.getUrl(
 				`Special:Contributions/${user}`
 			)}" class="mw-usertoollinks-contribs user-link" title="Special:用户贡献/${user}">贡献</a>）</span></span>‎ <span class="mw-changeslist-separator">. .</span> <span class="history-size">（${size}字节）</span>‎ <span class="mw-changeslist-separator">. .</span>  <span class="comment">（${comment}）</span>`;
 			document.getElementById("pagehistory").appendChild(li);
