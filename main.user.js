@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         灰机wiki查看版本历史
 // @namespace    https://github.com/gui-ying233/huijiHistory
-// @version      2.1.0
+// @version      2.2.0
 // @description  以另一种方式查看灰机wiki版本历史（绕过权限错误）。
 // @author       鬼影233, Honoka55
 // @match        *.huijiwiki.com/*
@@ -26,6 +26,17 @@
 		});
 		if (!document.body.getElementsByClassName("permissions-errors")[0])
 			return;
+		const parseDate = timestamp => {
+			const date = new Date(timestamp);
+			return `${date.getFullYear()}年${
+				date.getMonth() + 1
+			}月${date.getDate()}日 (${
+				["日", "一", "二", "三", "四", "五", "六"][date.getDay()]
+			}) ${date.getHours().toString().padStart(2, 0)}:${date
+				.getMinutes()
+				.toString()
+				.padStart(2, 0)}`;
+		};
 		switch (mw.config.get("wgAction")) {
 			case "history":
 				const pageName = mw.config.get("wgPageName");
@@ -74,7 +85,6 @@
 								}) => {
 									const li = document.createElement("li");
 									li.dataset.mwRevid = revid;
-									const date = new Date(timestamp);
 									const newestRev =
 										mw.config.get("wgCurRevisionId") ===
 										revid;
@@ -101,33 +111,15 @@
 										{
 											oldid: revid,
 										}
-									)}" class="mw-changeslist-date" title="${pageName}">
-							${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 (${
-										[
-											"日",
-											"一",
-											"二",
-											"三",
-											"四",
-											"五",
-											"六",
-										][date.getDay()]
-									}) ${date
-										.getHours()
-										.toString()
-										.padStart(2, 0)}:${date
-										.getMinutes()
-										.toString()
-										.padStart(
-											2,
-											0
-										)}</a>\u200E <span class="history-user"><a href="${mw.util.getUrl(
+									)}" class="mw-changeslist-date" title="${pageName}">${parseDate(
+										timestamp
+									)}</a>\u200E <span class="history-user"><a href="${mw.util.getUrl(
 										`User:${user}`
-									)}" class="mw-userlink markrights markBlockInfo user-link user-avatar-added" title="User:${user}" data-username="${user}"><bdi>${user}</bdi></a><span class="mw-usertoollinks">（<a href="${mw.util.getUrl(
+									)}" class="mw-userlink" title="User:${user}" data-username="${user}"><bdi>${user}</bdi></a><span class="mw-usertoollinks">（<a href="${mw.util.getUrl(
 										`User talk:${user}`
 									)}" class="mw-usertoollinks-talk user-link" title="User talk:${user}">讨论</a> | <a href="${mw.util.getUrl(
 										`Special:Contributions/${user}`
-									)}" class="mw-usertoollinks-contribs user-link" title="Special:用户贡献/${user}">贡献</a>）</span></span>\u200E <span class="mw-changeslist-separator">. .</span> <span class="history-size">（${size}字节）</span>\u200E <span class="mw-changeslist-separator">. .</span>  <span class="comment">（${comment}）</span>`;
+									)}" class="mw-usertoollinks-contribs user-link" title="Special:Contributions/${user}">贡献</a>）</span></span>\u200E <span class="mw-changeslist-separator">. .</span> <span class="history-size">（${size}字节）</span>\u200E <span class="mw-changeslist-separator">. .</span>  <span class="comment">（${comment}）</span>`;
 									document
 										.getElementById("pagehistory")
 										.appendChild(li);
@@ -170,7 +162,11 @@
 								.done(d => {
 									document.getElementById(
 										"mw-content-text"
-									).innerHTML = `<table class="diff diff-contentalign-left" data-mw="interface"><colgroup><col class="diff-marker"><col class="diff-content"><col class="diff-marker"><col class="diff-content"></colgroup><tbody>${d.compare.body}</tbody></table>`;
+									).innerHTML = `<table class="diff diff-contentalign-left" data-mw="interface">${
+										d.compare.body
+											? `<colgroup><col class="diff-marker"><col class="diff-content"><col class="diff-marker"><col class="diff-content"></colgroup><tbody>${d.compare.body}`
+											: '<tbody><tr><td colspan="2" class="diff-notice" lang="zh"><div class="mw-diff-empty">（没有差异）</div></td></tr>'
+									}</tbody></table>`;
 								});
 						} else {
 							await api
@@ -185,7 +181,11 @@
 								.done(d => {
 									document.getElementById(
 										"mw-content-text"
-									).innerHTML = `<table class="diff diff-contentalign-left" data-mw="interface"><colgroup><col class="diff-marker"><col class="diff-content"><col class="diff-marker"><col class="diff-content"></colgroup><tbody>${d.compare.body}</tbody></table>`;
+									).innerHTML = `<table class="diff diff-contentalign-left" data-mw="interface">${
+										d.compare.body
+											? `<colgroup><col class="diff-marker"><col class="diff-content"><col class="diff-marker"><col class="diff-content"></colgroup><tbody>${d.compare.body}`
+											: '<tbody><tr><td colspan="2" class="diff-notice" lang="zh"><div class="mw-diff-empty">（没有差异）</div></td></tr>'
+									}</tbody></table>`;
 								});
 						}
 						if (searchParams.get("diffonly") === "1") return;
@@ -200,24 +200,11 @@
 								rvprop: "content|timestamp",
 							})
 							.done(d => {
-								const date = new Date(
-									d.query.pages[0].revisions[0].timestamp
-								);
 								document.getElementById(
 									"mw-content-text"
-								).innerHTML += `<h2 class="diff-currentversion-title">${date.getFullYear()}年${
-									date.getMonth() + 1
-								}月${date.getDate()}日 (${
-									["日", "一", "二", "三", "四", "五", "六"][
-										date.getDay()
-									]
-								}) ${date
-									.getHours()
-									.toString()
-									.padStart(2, 0)}:${date
-									.getMinutes()
-									.toString()
-									.padStart(2, 0)}的版本</h2>`;
+								).innerHTML += `<h2 class="diff-currentversion-title">${parseDate(
+									d.query.pages[0].revisions[0].timestamp
+								)}的版本</h2>`;
 								api.post({
 									action: "parse",
 									format: "json",
@@ -240,14 +227,94 @@
 								revids: searchParams.get("oldid"),
 								utf8: 1,
 								formatversion: 2,
-								rvprop: "content",
+								rvprop: "ids|timestamp|user|parsedcomment|content",
 							})
-							.done(d => {
+							.done(async d => {
+								d = d.query.pages[0].revisions[0];
+								let torevid;
+								await api
+									.get({
+										action: "compare",
+										format: "json",
+										fromrev: searchParams.get("oldid"),
+										torelative: "next",
+										prop: "ids",
+										utf8: 1,
+										formatversion: 2,
+									})
+									.done(d => {
+										torevid = d.compare.torevid;
+									});
+								document.getElementById(
+									"bodyContent"
+								).parentNode.innerHTML =
+									`<div id="contentSub"><div class="mw-revision"><div id="mw-revision-info"><a href="${mw.util.getUrl(
+										`User:${d.user}`
+									)}" class="mw-userlink" title="User:${
+										d.user
+									}" data-username="${d.user}"><bdi>${
+										d.user
+									}</bdi></a><span class="mw-usertoollinks">（<a href="${mw.util.getUrl(
+										`User talk:${d.user}`
+									)}" class="mw-usertoollinks-talk user-link" title="User talk:${
+										d.user
+									}">讨论</a> | <a href="${mw.util.getUrl(
+										`Special:Contributions/${d.user}`
+									)}" class="mw-usertoollinks-contribs user-link" title="Special:Contributions/${
+										d.user
+									}">贡献</a>）</span>${parseDate(
+										d.timestamp
+									)}的版本 <span class="comment">（${
+										d.parsedcomment
+									}）</span></div><div id="mw-revision-nav">${
+										d.parentid
+											? `(<a href="${mw.util.getUrl("", {
+													diff: d.parentid,
+													oldid: searchParams.get(
+														"oldid"
+													),
+											  })}" title="Help:沙盒">差异</a>) <a href="${mw.util.getUrl(
+													"",
+													{ oldid: d.parentid }
+											  )}" title="${pageName}">←上一版本</a>`
+											: "(差异) ←上一版本"
+									} | ${
+										torevid
+											? `<a href="${mw.util.getUrl(
+													pageName
+											  )}" title="${pageName}">最后版本</a> (<a href="${mw.util.getUrl(
+													"",
+													{
+														diff: mw.config.get(
+															"wgCurRevisionId"
+														),
+														oldid: searchParams.get(
+															"oldid"
+														),
+													}
+											  )}" title="${pageName}">差异</a>) | <a href="${mw.util.getUrl(
+													"",
+													{
+														oldid: torevid,
+													}
+											  )}" title="${pageName}">下一版本→</a> (<a href="${mw.util.getUrl(
+													"",
+													{
+														diff: torevid,
+														oldid: searchParams.get(
+															"oldid"
+														),
+													}
+											  )}" title="${pageName}">差异</a>)</div></div></div>`
+											: "最后版本 (差异) | 下一版本→ (差异)"
+									}` +
+									document.getElementById("bodyContent")
+										.parentNode.innerHTML;
 								api.post({
 									action: "parse",
 									format: "json",
 									title: pageName,
-									text: d.query.pages[0].revisions[0].content,
+									text: d.content,
 									prop: "text",
 									utf8: 1,
 									formatversion: 2,
