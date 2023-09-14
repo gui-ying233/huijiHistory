@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         灰机wiki查看版本历史
 // @namespace    https://github.com/gui-ying233/huijiHistory
-// @version      2.0
+// @version      2.0.1
 // @description  以另一种方式查看灰机wiki版本历史（绕过权限错误）。
 // @author       鬼影233, Honoka55
 // @match        *.huijiwiki.com/*
@@ -139,10 +139,9 @@
 				);
 				if (searchParams.get("oldid") || searchParams.get("diff")) {
 					const pageName = mw.config.get("wgPageName");
-					try {
+					if (document.getElementsByTagName("h1")[0])
 						document.getElementsByTagName("h1")[0].innerHTML =
 							pageName;
-					} catch {}
 					document.title = document.title.replace(
 						"权限错误",
 						pageName
