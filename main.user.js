@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         灰机wiki查看版本历史
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      1.0.1
 // @description  以另一种方式查看灰机wiki版本历史（绕过权限错误）。
 // @author       鬼影233
 // @match        *.huijiwiki.com/*
