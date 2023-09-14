@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         灰机wiki查看版本历史
 // @namespace    https://github.com/gui-ying233/huijiHistory
-// @version      1.2.3
+// @version      2.0
 // @description  以另一种方式查看灰机wiki版本历史（绕过权限错误）。
 // @author       鬼影233, Honoka55
 // @match        *.huijiwiki.com/*
@@ -47,25 +47,39 @@
 						""
 					)}" id="mw-history-compare"><div><input class="historysubmit mw-history-compareselectedversions-button" title="查看该页面两个选定的版本之间的差异。[ctrl-option-v]" accesskey="v" type="submit" value="对比选择的版本"></div><ul id="pagehistory"></ul></form>`;
 				const api = new mw.Api();
-				const creatRevLi = (revId, user, comment, timestamp, size) => {
+				const creatRevLi = (
+					revid,
+					oldid,
+					user,
+					comment,
+					timestamp,
+					size
+				) => {
 					const li = document.createElement("li");
-					li.dataset.mwRevid = revId;
+					li.dataset.mwRevid = revid;
 					const date = new Date(timestamp);
 					const newestRev =
-						mw.config.get("wgCurRevisionId") === revId;
+						mw.config.get("wgCurRevisionId") === revid;
 					li.innerHTML = `<span class="mw-history-histlinks">（${
 						newestRev
 							? "当前"
 							: `<a href="${mw.util.getUrl("", {
 									diff: mw.config.get("wgCurRevisionId"),
-									oldid: revId,
+									oldid: revid,
 							  })}">当前</a>`
-					} | 之前）</span><input type="radio" value="${revId}" name="oldid" id="mw-oldid-${revId}"><input type="radio" value="${revId}" ${
+					} | ${
+						oldid
+							? `<a href="${mw.util.getUrl("", {
+									diff: revid,
+									oldid,
+							  })}">之前</a>`
+							: "之前"
+					}）</span><input type="radio" value="${revid}" name="oldid" id="mw-oldid-${revid}"><input type="radio" value="${revid}" ${
 						newestRev ? "checked='checked'" : ""
-					} name="diff" id="mw-diff-${revId}"><a href="${mw.util.getUrl(
+					} name="diff" id="mw-diff-${revid}"><a href="${mw.util.getUrl(
 						"",
 						{
-							oldid: revId,
+							oldid: revid,
 						}
 					)}" class="mw-changeslist-date" title="${pageName}">
 				${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 (${
@@ -86,72 +100,38 @@
 						`Special:Contributions/${user}`
 					)}" class="mw-usertoollinks-contribs user-link" title="Special:用户贡献/${user}">贡献</a>）</span></span>\u200E <span class="mw-changeslist-separator">. .</span> <span class="history-size">（${size}字节）</span>\u200E <span class="mw-changeslist-separator">. .</span>  <span class="comment">（${comment}）</span>`;
 					document.getElementById("pagehistory").appendChild(li);
-					if (!newestRev) {
-						const lastLiLinks = li.previousElementSibling.firstElementChild;
-						let nextId;
-						if (!lastLiLinks.innerHTML.includes("oldid="))
-							nextId = mw.config.get("wgCurRevisionId");
-						else
-							nextId = lastLiLinks.innerHTML.split("oldid=")[1].split('"')[0];
-						lastLiLinks.innerHTML = lastLiLinks.innerHTML.replace("之前",`<a href="${mw.util.getUrl("", {
-							diff: nextId,
-							oldid: revId,
-						})}">之前</a>`);
-					}
 				};
-				api.get({
-					action: "compare",
-					format: "json",
-					fromtitle: pageName,
-					torelative: "prev",
-					prop: "ids|user|parsedcomment|timestamp|size",
-					utf8: 1,
-					formatversion: 2,
-				}).done(d => {
-					d = d.compare;
-					creatRevLi(
-						d.torevid,
-						d.touser,
-						d.toparsedcomment,
-						d.totimestamp,
-						d.tosize
-					);
-					creatRevLi(
-						d.fromrevid,
-						d.fromuser,
-						d.fromparsedcomment,
-						d.fromtimestamp,
-						d.fromsize
-					);
-					(function getRev(fromrev) {
-						api.get({
-							action: "compare",
-							format: "json",
-							fromrev,
-							torelative: "prev",
-							prop: "ids|title|user|parsedcomment|timestamp|size",
-							utf8: 1,
-							formatversion: 2,
-						}).done(d => {
-							d = d.compare;
-							if (!d.fromrevid) {
-								const hr = document.createElement("hr");
-								document
-									.getElementById("mw-content-text")
-									.appendChild(hr);
-								return;
-							}
-							creatRevLi(
-								d.fromrevid,
-								d.fromuser,
-								d.fromparsedcomment,
-								d.fromtimestamp,
-								d.fromsize
+				const revisions = [];
+				const getHistory = async rvcontinue => {
+					api.get({
+						action: "query",
+						format: "json",
+						prop: "revisions",
+						titles: "版本:6.3",
+						utf8: 1,
+						formatversion: 2,
+						rvprop: "ids|user|parsedcomment|timestamp|size",
+						rvlimit: "max",
+						rvcontinue,
+					}).done(async d => {
+						revisions.push(...d.query.pages[0].revisions);
+						if (d.continue?.rvcontinue)
+							await getHistory(d.continue?.rvcontinue);
+						else {
+							revisions.forEach(rev =>
+								creatRevLi(
+									rev.revid,
+									rev.parentid,
+									rev.user,
+									rev.parsedcomment,
+									rev.timestamp,
+									rev.size
+								)
 							);
-							getRev(d.fromrevid);
-						});
-					})(d.fromrevid);
-				});
+						}
+					});
+				};
+				await getHistory("|");
 				break;
 			case "view":
 				const searchParams = new URLSearchParams(
@@ -187,55 +167,6 @@
 										"mw-content-text"
 									).innerHTML = `<table class="diff diff-contentalign-left" data-mw="interface"><colgroup><col class="diff-marker"><col class="diff-content"><col class="diff-marker"><col class="diff-content"></colgroup><tbody>${d.compare.body}</tbody></table>`;
 								});
-							await api
-								.get({
-									action: "query",
-									format: "json",
-									prop: "revisions",
-									revids: searchParams.get("diff"),
-									utf8: 1,
-									formatversion: 2,
-									rvprop: "content|timestamp",
-								})
-								.done(d => {
-									const date = new Date(
-										d.query.pages[0].revisions[0].timestamp
-									);
-									document.getElementById(
-										"mw-content-text"
-									).innerHTML += `<h2 class="diff-currentversion-title">${date.getFullYear()}年${
-										date.getMonth() + 1
-									}月${date.getDate()}日 (${
-										[
-											"日",
-											"一",
-											"二",
-											"三",
-											"四",
-											"五",
-											"六",
-										][date.getDay()]
-									}) ${date
-										.getHours()
-										.toString()
-										.padStart(2, 0)}:${date
-										.getMinutes()
-										.toString()
-										.padStart(2, 0)}的版本</h2>`;
-									api.post({
-										action: "parse",
-										format: "json",
-										title: pageName,
-										text: d.query.pages[0].revisions[0]
-											.content,
-										utf8: 1,
-										formatversion: 2,
-									}).done(d => {
-										document.getElementById(
-											"mw-content-text"
-										).innerHTML += d.parse.text;
-									});
-								});
 						} else {
 							await api
 								.get({
@@ -252,6 +183,49 @@
 									).innerHTML = `<table class="diff diff-contentalign-left" data-mw="interface"><colgroup><col class="diff-marker"><col class="diff-content"><col class="diff-marker"><col class="diff-content"></colgroup><tbody>${d.compare.body}</tbody></table>`;
 								});
 						}
+						if (searchParams.get("diffonly") === "1") return;
+						await api
+							.get({
+								action: "query",
+								format: "json",
+								prop: "revisions",
+								revids: searchParams.get("diff"),
+								utf8: 1,
+								formatversion: 2,
+								rvprop: "content|timestamp",
+							})
+							.done(d => {
+								const date = new Date(
+									d.query.pages[0].revisions[0].timestamp
+								);
+								document.getElementById(
+									"mw-content-text"
+								).innerHTML += `<h2 class="diff-currentversion-title">${date.getFullYear()}年${
+									date.getMonth() + 1
+								}月${date.getDate()}日 (${
+									["日", "一", "二", "三", "四", "五", "六"][
+										date.getDay()
+									]
+								}) ${date
+									.getHours()
+									.toString()
+									.padStart(2, 0)}:${date
+									.getMinutes()
+									.toString()
+									.padStart(2, 0)}的版本</h2>`;
+								api.post({
+									action: "parse",
+									format: "json",
+									title: pageName,
+									text: d.query.pages[0].revisions[0].content,
+									utf8: 1,
+									formatversion: 2,
+								}).done(d => {
+									document.getElementById(
+										"mw-content-text"
+									).innerHTML += d.parse.text;
+								});
+							});
 					} else {
 						await api
 							.get({
