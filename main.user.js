@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         灰机wiki查看版本历史
 // @namespace    https://github.com/gui-ying233/huijiHistory
-// @version      1.2.2
+// @version      1.2.3
 // @description  以另一种方式查看灰机wiki版本历史（绕过权限错误）。
-// @author       鬼影233
+// @author       鬼影233, Honoka55
 // @match        *.huijiwiki.com/*
 // @icon         https://av.huijiwiki.com/site_avatar_www_l.png
 // @license      MIT
