@@ -4,7 +4,7 @@
 
 ## 目前支持
 
-action=history；
+action=history
 
 diff=…
 
