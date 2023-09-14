@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         灰机wiki查看版本历史
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/gui-ying233/huijiHistory/issues
 // @version      1.1.0
 // @description  以另一种方式查看灰机wiki版本历史（绕过权限错误）。
 // @author       鬼影233
