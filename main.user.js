@@ -60,10 +60,7 @@
 									diff: mw.config.get("wgCurRevisionId"),
 									oldid: revId,
 							  })}">当前</a>`
-					} | <a href="${mw.util.getUrl("", {
-						diff: revId,
-						oldid: revId,
-					})}">之前</a>）</span><input type="radio" value="${revId}" name="oldid" id="mw-oldid-${revId}"><input type="radio" value="${revId}" ${
+					} | 之前）</span><input type="radio" value="${revId}" name="oldid" id="mw-oldid-${revId}"><input type="radio" value="${revId}" ${
 						newestRev ? "checked='checked'" : ""
 					} name="diff" id="mw-diff-${revId}"><a href="${mw.util.getUrl(
 						"",
@@ -89,6 +86,18 @@
 						`Special:Contributions/${user}`
 					)}" class="mw-usertoollinks-contribs user-link" title="Special:用户贡献/${user}">贡献</a>）</span></span>\u200E <span class="mw-changeslist-separator">. .</span> <span class="history-size">（${size}字节）</span>\u200E <span class="mw-changeslist-separator">. .</span>  <span class="comment">（${comment}）</span>`;
 					document.getElementById("pagehistory").appendChild(li);
+					if (!newestRev) {
+						const lastLiLinks = li.previousElementSibling.firstElementChild;
+						let nextId;
+						if (!lastLiLinks.innerHTML.includes("oldid="))
+							nextId = mw.config.get("wgCurRevisionId");
+						else
+							nextId = lastLiLinks.innerHTML.split("oldid=")[1].split('"')[0];
+						lastLiLinks.innerHTML = lastLiLinks.innerHTML.replace("之前",`<a href="${mw.util.getUrl("", {
+							diff: nextId,
+							oldid: revId,
+						})}">之前</a>`);
+					}
 				};
 				api.get({
 					action: "compare",
