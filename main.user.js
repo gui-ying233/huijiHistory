@@ -148,10 +148,7 @@
 				const searchParams = new URLSearchParams(
 					window.location.search
 				);
-				if (
-					searchParams &&
-					(searchParams.get("oldid") || searchParams.get("diff"))
-				) {
+				if (searchParams.get("oldid") || searchParams.get("diff")) {
 					const pageName = mw.config.get("wgPageName");
 					try {
 						document.getElementsByTagName("h1")[0].innerHTML =
