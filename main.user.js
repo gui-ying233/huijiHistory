@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         灰机wiki查看版本历史
 // @namespace    https://github.com/gui-ying233/huijiHistory
-// @version      1.2.1
+// @version      1.2.2
 // @description  以另一种方式查看灰机wiki版本历史（绕过权限错误）。
 // @author       鬼影233
 // @match        *.huijiwiki.com/*
@@ -14,13 +14,13 @@
 	"use strict";
 	(async function () {
 		await new Promise(resolve => {
-			setInterval(() => {
+			const intervId = setInterval(() => {
 				if (
 					typeof mw !== "undefined" &&
 					typeof mw.Api !== "undefined"
 				) {
+					clearInterval(intervId);
 					resolve();
-					return;
 				}
 			}, 50);
 		});
