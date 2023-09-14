@@ -181,6 +181,55 @@
 										"mw-content-text"
 									).innerHTML = `<table class="diff diff-contentalign-left" data-mw="interface"><colgroup><col class="diff-marker"><col class="diff-content"><col class="diff-marker"><col class="diff-content"></colgroup><tbody>${d.compare.body}</tbody></table>`;
 								});
+							await api
+								.get({
+									action: "query",
+									format: "json",
+									prop: "revisions",
+									revids: searchParams.get("diff"),
+									utf8: 1,
+									formatversion: 2,
+									rvprop: "content|timestamp",
+								})
+								.done(d => {
+									const date = new Date(
+										d.query.pages[0].revisions[0].timestamp
+									);
+									document.getElementById(
+										"mw-content-text"
+									).innerHTML += `<h2 class="diff-currentversion-title">${date.getFullYear()}年${
+										date.getMonth() + 1
+									}月${date.getDate()}日 (${
+										[
+											"日",
+											"一",
+											"二",
+											"三",
+											"四",
+											"五",
+											"六",
+										][date.getDay()]
+									}) ${date
+										.getHours()
+										.toString()
+										.padStart(2, 0)}:${date
+										.getMinutes()
+										.toString()
+										.padStart(2, 0)}的版本</h2>`;
+									api.post({
+										action: "parse",
+										format: "json",
+										title: pageName,
+										text: d.query.pages[0].revisions[0]
+											.content,
+										utf8: 1,
+										formatversion: 2,
+									}).done(d => {
+										document.getElementById(
+											"mw-content-text"
+										).innerHTML += d.parse.text;
+									});
+								});
 						} else {
 							await api
 								.get({
