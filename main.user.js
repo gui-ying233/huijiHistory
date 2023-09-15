@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         灰机wiki查看版本历史
 // @namespace    https://github.com/gui-ying233/huijiHistory
-// @version      2.3.1
+// @version      2.3.2
 // @description  以另一种方式查看灰机wiki版本历史（绕过权限错误）。
 // @author       鬼影233, Honoka55
 // @match        *.huijiwiki.com/*
@@ -139,18 +139,19 @@
 					window.location.search
 				);
 				if (searchParams.get("oldid") || searchParams.get("diff")) {
-					const pageName = mw.config
-						.get("wgPageName")
-						.replace("_", " ");
-					if (document.getElementsByTagName("h1")[0])
-						document.getElementsByTagName("h1")[0].innerHTML =
-							pageName;
-					document.title = document.title.replace(
-						"权限错误",
-						pageName
-					);
 					const api = new mw.Api();
 					if (searchParams.get("diff")) {
+						const pageName = mw.config
+							.get("wgPageName")
+							.replace("_", " ");
+						if (document.getElementsByTagName("h1")[0])
+							document.getElementsByTagName(
+								"h1"
+							)[0].innerHTML = `“${pageName}”的版本间的差异`;
+						document.title = document.title.replace(
+							"权限错误",
+							`“${pageName}”的版本间的差异`
+						);
 						mw.util.addCSS(
 							`.diff{border:0;border-spacing:4px;margin:0;width:100%;table-layout:fixed}.diff td{padding:.33em .5em}.diff td.diff-marker{padding:.25em}.diff col.diff-marker{width:2%}.diff .diff-content{width:48%}.diff td div{word-wrap:break-word}.diff-title{vertical-align:top}.diff-multi,.diff-notice,.diff-ntitle,.diff-otitle{text-align:center}.diff-lineno{font-weight:700}td.diff-marker{text-align:right;font-weight:700;font-size:1.25em;line-height:1.2}.diff-addedline,.diff-context,.diff-deletedline{font-size:88%;line-height:1.6;vertical-align:top;white-space:-moz-pre-wrap;white-space:pre-wrap;border-style:solid;border-width:1px 1px 1px 4px;border-radius:.33em}.diff-addedline{border-color:#a3d3ff}.diff-deletedline{border-color:#ffe49c}.diff-context{background:#f8f9fa;border-color:#eaecf0;color:#222}.diffchange{font-weight:700;text-decoration:none}.diff-addedline .diffchange,.diff-deletedline .diffchange{border-radius:.33em;padding:.25em 0}.diff-addedline .diffchange{background:#d8ecff}.diff-deletedline .diffchange{background:#feeec8}.diff,.diff-currentversion-title{direction:ltr;unicode-bidi:embed}.diff-contentalign-right td{direction:rtl;unicode-bidi:embed}.diff-contentalign-left td{direction:ltr;unicode-bidi:embed}.diff-lineno,.diff-multi,.diff-ntitle,.diff-otitle{direction:ltr!important;unicode-bidi:embed}.mw-diff-movedpara-left,.mw-diff-movedpara-left:active,.mw-diff-movedpara-left:visited,.mw-diff-movedpara-right,.mw-diff-movedpara-right:active,.mw-diff-movedpara-right:visited{display:block;color:transparent}.mw-diff-movedpara-left:hover,.mw-diff-movedpara-right:hover{text-decoration:none;color:transparent}.mw-diff-movedpara-left:after,.mw-diff-movedpara-right:after{display:block;color:#222;margin-top:-1.25em}.mw-diff-movedpara-left:after,.rtl .mw-diff-movedpara-right:after{content:"↪"}.mw-diff-movedpara-right:after,.rtl .mw-diff-movedpara-left:after{content:"↩"}@media print{td.diff-addedline .diffchange,td.diff-context,td.diff-deletedline .diffchange{background-color:transparent}td.diff-addedline .diffchange{text-decoration:underline}td.diff-deletedline .diffchange{text-decoration:line-through}}`
 						);
@@ -336,6 +337,16 @@
 								});
 							});
 					} else {
+						const pageName = mw.config
+							.get("wgPageName")
+							.replace("_", " ");
+						if (document.getElementsByTagName("h1")[0])
+							document.getElementsByTagName("h1")[0].innerHTML =
+								pageName;
+						document.title = document.title.replace(
+							"权限错误",
+							pageName
+						);
 						await api
 							.get({
 								action: "query",
