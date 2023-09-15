@@ -39,7 +39,7 @@
 		};
 		switch (mw.config.get("wgAction")) {
 			case "history":
-				const pageName = mw.config.get("wgPageName");
+				const pageName = mw.config.get("wgPageName").replace("_", " ");
 				if (document.getElementsByTagName("h1")[0])
 					document.getElementsByTagName(
 						"h1"
@@ -139,7 +139,9 @@
 					window.location.search
 				);
 				if (searchParams.get("oldid") || searchParams.get("diff")) {
-					const pageName = mw.config.get("wgPageName");
+					const pageName = mw.config
+						.get("wgPageName")
+						.replace("_", " ");
 					if (document.getElementsByTagName("h1")[0])
 						document.getElementsByTagName("h1")[0].innerHTML =
 							pageName;
@@ -360,71 +362,81 @@
 									.done(d => {
 										torevid = d.compare.torevid;
 									});
-								document.getElementById(
-									"bodyContent"
-								).parentNode.innerHTML =
-									`<div id="contentSub"><div class="mw-revision"><div id="mw-revision-info"><a href="${mw.util.getUrl(
-										`User:${d.user}`
-									)}" class="mw-userlink" title="User:${
-										d.user
-									}" data-username="${d.user}"><bdi>${
-										d.user
-									}</bdi></a><span class="mw-usertoollinks">（<a href="${mw.util.getUrl(
-										`User talk:${d.user}`
-									)}" class="mw-usertoollinks-talk user-link" title="User talk:${
-										d.user
-									}">讨论</a> | <a href="${mw.util.getUrl(
-										`Special:Contributions/${d.user}`
-									)}" class="mw-usertoollinks-contribs user-link" title="Special:Contributions/${
-										d.user
-									}">贡献</a>）</span>${parseDate(
-										d.timestamp
-									)}的版本 <span class="comment">（${
-										d.parsedcomment
-									}）</span></div><div id="mw-revision-nav">${
-										d.parentid
-											? `(<a href="${mw.util.getUrl("", {
-													diff: d.parentid,
+								const text = `<div id="contentSub"><div class="mw-revision"><div id="mw-revision-info"><a href="${mw.util.getUrl(
+									`User:${d.user}`
+								)}" class="mw-userlink" title="User:${
+									d.user
+								}" data-username="${d.user}"><bdi>${
+									d.user
+								}</bdi></a><span class="mw-usertoollinks">（<a href="${mw.util.getUrl(
+									`User talk:${d.user}`
+								)}" class="mw-usertoollinks-talk user-link" title="User talk:${
+									d.user
+								}">讨论</a> | <a href="${mw.util.getUrl(
+									`Special:Contributions/${d.user}`
+								)}" class="mw-usertoollinks-contribs user-link" title="Special:Contributions/${
+									d.user
+								}">贡献</a>）</span>${parseDate(
+									d.timestamp
+								)}的版本 <span class="comment">（${
+									d.parsedcomment
+								}）</span></div><div id="mw-revision-nav">${
+									d.parentid
+										? `(<a href="${mw.util.getUrl("", {
+												diff: d.parentid,
+												oldid: searchParams.get(
+													"oldid"
+												),
+										  })}" title="Help:沙盒">差异</a>) <a href="${mw.util.getUrl(
+												"",
+												{ oldid: d.parentid }
+										  )}" title="${pageName}">←上一版本</a>`
+										: "(差异) ←上一版本"
+								} | ${
+									torevid
+										? `<a href="${mw.util.getUrl(
+												pageName
+										  )}" title="${pageName}">最后版本</a> (<a href="${mw.util.getUrl(
+												"",
+												{
+													diff: mw.config.get(
+														"wgCurRevisionId"
+													),
 													oldid: searchParams.get(
 														"oldid"
 													),
-											  })}" title="Help:沙盒">差异</a>) <a href="${mw.util.getUrl(
-													"",
-													{ oldid: d.parentid }
-											  )}" title="${pageName}">←上一版本</a>`
-											: "(差异) ←上一版本"
-									} | ${
-										torevid
-											? `<a href="${mw.util.getUrl(
-													pageName
-											  )}" title="${pageName}">最后版本</a> (<a href="${mw.util.getUrl(
-													"",
-													{
-														diff: mw.config.get(
-															"wgCurRevisionId"
-														),
-														oldid: searchParams.get(
-															"oldid"
-														),
-													}
-											  )}" title="${pageName}">差异</a>) | <a href="${mw.util.getUrl(
-													"",
-													{
-														oldid: torevid,
-													}
-											  )}" title="${pageName}">下一版本→</a> (<a href="${mw.util.getUrl(
-													"",
-													{
-														diff: torevid,
-														oldid: searchParams.get(
-															"oldid"
-														),
-													}
-											  )}" title="${pageName}">差异</a>)</div></div></div>`
-											: "最后版本 (差异) | 下一版本→ (差异)"
-									}` +
-									document.getElementById("bodyContent")
-										.parentNode.innerHTML;
+												}
+										  )}" title="${pageName}">差异</a>) | <a href="${mw.util.getUrl(
+												"",
+												{
+													oldid: torevid,
+												}
+										  )}" title="${pageName}">下一版本→</a> (<a href="${mw.util.getUrl(
+												"",
+												{
+													diff: torevid,
+													oldid: searchParams.get(
+														"oldid"
+													),
+												}
+										  )}" title="${pageName}">差异</a>)</div></div></div>`
+										: "最后版本 (差异) | 下一版本→ (差异)"
+								}`;
+								if (document.getElementById("firstHeading")) {
+									document.getElementById(
+										"firstHeading"
+									).outerHTML = `${
+										document.getElementById("firstHeading")
+											.outerHTML
+									}${text}`;
+								} else {
+									document.getElementById(
+										"bodyContent"
+									).parentNode.innerHTML = `${text}${
+										document.getElementById("bodyContent")
+											.parentNode.innerHTML
+									}`;
+								}
 								api.post({
 									action: "parse",
 									format: "json",
