@@ -4,7 +4,7 @@
 
 ## 目前支持
 
-action=history
+action=history（可能无入口，需要手动更改网址）
 
 diff=…
 
@@ -13,3 +13,5 @@ oldid=…
 diff=…&oldid=…
 
 diffonly=1
+
+暂不支持【Special:最近更改】，但在计划中……
